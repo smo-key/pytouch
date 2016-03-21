@@ -4,6 +4,7 @@ Python Touchscreen Wrapper for Unix-based systems (works on Raspberry Pi!)
 ### License
 
 Copyright (C) 2016  Arthur Pachachura
+
 Copyright (C) 2013  Mark Williams
 
 This library is free software; you can redistribute it and/or
