@@ -19,8 +19,6 @@ touch = TouchThread()
 touch.start()
 ```
 
-Once 
-
 ## API
 ``` python
 TouchThread(width=480, height=320, dev="/dev/input/event0", debug=False)
