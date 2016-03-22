@@ -19,8 +19,6 @@
 
 
 import threading
-#import multiprocessing as mp
-#import subprocess as sub
 from subprocess import Popen, PIPE
 import os
 
@@ -43,7 +41,7 @@ class StoppableThread(threading.Thread):
 class TouchThread (StoppableThread):
 	_width = 480
 	_height = 320
-	_dev = "/dev/input/event0"
+	_device = "/dev/input/event0"
 	_state = (0, 0, 0)
 	_prevstate = (0, 0, 0)
 	_new = False
@@ -53,18 +51,21 @@ class TouchThread (StoppableThread):
 	_wait = True
 	_debug = False	
 
-	def __init__(self, width=480, height=320, dev="/dev/input/event0", debug=False):
+	def __init__(self, width=480, height=320, device="/dev/input/event0", debug=False):
 		self._width = width
 		self._height = height
-		self._dev = dev
+		self._device = device
 		self._debug = debug
 		super(TouchThread, self).__init__()
 
 	def isInitialized(self):
-		return self._init;
+		return self._init
 
 	def hasError(self):
-		return (not (self._error is not None))
+		return (self._error is not None)
+
+	def getError(self):
+		return self._error
 
 	def hasUpdate(self):
 		self._lock.acquire()
@@ -86,16 +87,21 @@ class TouchThread (StoppableThread):
 		
 	def run(self):
 		dir = os.path.dirname(os.path.realpath(__file__))
-		process = Popen([dir + "/pytouch", str(self._width), str(self._height), str(self._dev), "1"], stdout=PIPE, bufsize=1)
+		process = Popen([dir + "/pytouch", str(self._width), str(self._height), str(self._device), "2"], stdout=PIPE, bufsize=1)
+		if self._debug is True:
+			print "STARTING TOUCH THREAD"
 		for line in iter(process.stdout.readline, b''):
     			if (self._debug is True) and (not line.startswith("KEEPALIVE")):
 				print line[:-1]
 			if (self.stopped() is True):
+				if self._debug is True:
+					print "EXITING TOUCH THREAD by stop()"
 				return;
 			self._lock.acquire()
 			if (line.startswith("KEEPALIVE")):
                                 pass;
-			elif (line.startswith("INIT: SUCCESS!")):
+			elif (line.startswith("INIT: ")):
+				print "GOT INIT!"
 				self._init = True
 			elif (line.startswith("KEY: ")):
 				if (line[5:].startswith("DOWN")):
@@ -111,8 +117,14 @@ class TouchThread (StoppableThread):
 				self._state = (int(line[7:pos+7]),int(line[pos+8:-1]), self._state[2])
 			elif (line.startswith("ERROR: ")):
 				self._error = line[7:-1]
+				if self._debug is not True:
+					print line
 				self._lock.release()
+				if self._debug is True:
+					print "EXITING TOUCH THREAD with error"
 				return;
 			self._lock.release()
 		
 		process.communicate() # wait for process to exit
+		if self._debug is True:
+			print "EXITING TOUCH THREAD - process ended"

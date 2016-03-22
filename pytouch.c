@@ -72,8 +72,8 @@ int main(int argc, char *argv[])
 
 	int Xaverage = 0;
 	int Yaverage = 0;
-	int keepalive = 1; //Keepalive timer
-	
+	int keepalive = 0;
+
 	char* tsname = "/dev/input/event0";
 
 	if (argc < 3)
@@ -88,13 +88,13 @@ int main(int argc, char *argv[])
 	}
 	if (argc >= 4)
 	{
-		tsname = argv[4];
+		tsname = argv[3];
 	}
 	if (argc >= 5)
 	{
-		keepalive = atoi(argv[5]);
+		keepalive = atoi(argv[4]);
 	}
-	
+
 	if (openTouchScreen(tsname) == 1)
 	{
 		printf("ERROR: Error reading touchscreen.\n");
